@@ -1,14 +1,17 @@
 <template>
-
-    <work-in-progress></work-in-progress>
-
+    <div>
+        <WIP></WIP>
+    </div>
 </template>
 
-
 <script>
-import WorkInProgress from '../components/WorkInProgress';
+
+import WIP from '../components/WIP.vue'
+
 export default {
-    name: 'App',
-    components: { WorkInProgress }
+    name:'App',
+    components:{
+        WIP,
+    }
 }
 </script>

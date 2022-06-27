@@ -2,14 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Post;
+use App\Models\Category;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PostRequest;
-use App\Models\Category;
-use App\Models\Post;
 use App\Models\Tag;
-use Illuminate\Http\Request; // 👈 Import the Request class
-use Illuminate\Support\Facades\Auth; // 👈 Import the Validation Rule class
-use Illuminate\Validation\Rule;
 
 class PostController extends Controller
 {
@@ -20,9 +17,9 @@ class PostController extends Controller
      */
     public function index()
     {
-        $posts = Post::orderByDesc('id')->get();
+        $posts = Post::all()->sortDesc();
         //dd($posts);
-        return view('admin.posts.index', compact('posts'));
+        return view('admin.posts.index',compact('posts'));
     }
 
     /**
@@ -34,42 +31,24 @@ class PostController extends Controller
     {
         $categories = Category::all();
         $tags = Tag::all();
-        //dd($categories);
-        return view('admin.posts.create', compact('categories', 'tags'));
+        return view('admin.posts.create',compact('categories','tags'));
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \App\Http\Requests\PostRequest  $request
+     * @param  App\Http\Requests\PostRequest;  $request
      * @return \Illuminate\Http\Response
      */
     public function store(PostRequest $request)
     {
-        //ddd($request->all());
-
-        /* TODO
-        Validate all tags */
-
-        // Validate data
-        $val_data = $request->validated();
-
-        // se l'id esiste tra gli id della tabelal categories
-
-        // Gererate the slug
+        //dd($request->all());
+        $validate_data = $request->validated();
         $slug = Post::generateSlug($request->title);
-        $val_data['slug'] = $slug;
-
-        //dd($val_data);
-        // assign the post to the authenticated user
-        $val_data['user_id'] = Auth::id();
-
-        // create the resource
-        $new_post = Post::create($val_data);
+        $validate_data['slug'] =$slug;
+        $new_post = Post::create($validate_data);
         $new_post->tags()->attach($request->tags);
-
-        // redirect to a get route
-        return redirect()->route('admin.posts.index')->with('message', 'Post Created Successfully');
+        return redirect()->route('admin.posts.index')->with('message','Post Created Successfully');
     }
 
     /**
@@ -80,7 +59,8 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        return view('admin.posts.show', compact('post'));
+        return view('admin.posts.show',compact('post'));
+
     }
 
     /**
@@ -93,46 +73,24 @@ class PostController extends Controller
     {
         $categories = Category::all();
         $tags = Tag::all();
-
-        return view('admin.posts.edit', compact('post', 'categories', 'tags'));
+        return view('admin.posts.edit',compact('post','categories','tags'));
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\PostRequest  $request
+     * @param  App\Http\Requests\PostRequest;  $request
      * @param  \App\Models\Post  $post
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Post $post)
+    public function update(PostRequest $request, Post $post)
     {
-        /* Use the standard Request ☝ */
-        //dd($request->all());
-
-        // validate data
-        //$val_data = $request->validated();
-
-        /* ⚡ Validation unique ⚡*/
-        $val_data = $request->validate([
-            'title' => ['required', Rule::unique('posts')->ignore($post)],
-            'category_id' => 'nullable|exists:categories,id',
-            'tags' => 'exists:tags,id',
-            'cover_image' => 'nullable',
-            'content' => 'nullable',
-        ]);
-
-        //dd($val_data);
-        // Gererate the slug
+        $validate_data = $request->validated();
         $slug = Post::generateSlug($request->title);
-        //dd($slug);
-        $val_data['slug'] = $slug;
-        // update the resource
-        $post->update($val_data);
-
-        //Sync tags
+        $validate_data['slug'] =$slug;
+        $post->update($validate_data);
         $post->tags()->sync($request->tags);
-        // redirect to get route
-        return redirect()->route('admin.posts.index')->with('message', "$post->title updated successfully");
+        return redirect()->route('admin.posts.show',$post)->with('message','Post Update Successfully');
     }
 
     /**
@@ -143,10 +101,7 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        //
-
         $post->delete();
-
-        return redirect()->route('admin.posts.index')->with('message', "$post->title deleted successfully");
+        return redirect()->route('admin.posts.index')->with('message','Post Delete Successfully');
     }
 }

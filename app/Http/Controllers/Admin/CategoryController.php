@@ -17,8 +17,8 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $cats = Category::orderByDesc('id')->get();
-        return view('admin.categories.index', compact('cats'));
+        $categories = Category::all()->sortDesc();
+        return view('admin.categories.index',compact('categories'));
     }
 
     /**
@@ -29,24 +29,14 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        //dd($request->all());
-
-        // Validare
         $val_data = $request->validate([
             'name' => 'required|unique:categories'
         ]);
-        // generate slug
         $slug = Str::slug($request->name);
         $val_data['slug'] = $slug;
-
-        // salvare
-
         Category::create($val_data);
-
-        // redirect
-        return redirect()->back()->with('message', "Category $slug added successfully");
+        return redirect()->back()->with('message',"Category $slug added succesfully");
     }
-
 
     /**
      * Update the specified resource in storage.
@@ -57,17 +47,13 @@ class CategoryController extends Controller
      */
     public function update(Request $request, Category $category)
     {
-        //dd($request->all());
-
         $val_data = $request->validate([
-            'name' => ['required', Rule::unique('categories')->ignore($category)]
+            'name' => ['required',Rule::unique('categories')->ignore($category->id)]
         ]);
-        // generate slug
         $slug = Str::slug($request->name);
         $val_data['slug'] = $slug;
-
         $category->update($val_data);
-        return redirect()->back()->with('message', "Category $slug updated successfully");
+        return redirect()->back()->with('message',"Category $slug update succesfully");
     }
 
     /**
@@ -79,6 +65,6 @@ class CategoryController extends Controller
     public function destroy(Category $category)
     {
         $category->delete();
-        return redirect()->back()->with('message', "Category $category->name removed successfully");
+        return redirect()->back()->with('message', "Category $category->name Removed Succesfully");
     }
 }

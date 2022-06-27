@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Models\Tag;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -17,9 +17,8 @@ class TagController extends Controller
      */
     public function index()
     {
-        $tags = Tag::all();
-
-        return view('admin.tags.index', compact('tags'));
+       $tags = Tag::all()->sortDesc();
+       return view('admin.tags.index',compact('tags'));
     }
 
     /**
@@ -30,22 +29,13 @@ class TagController extends Controller
      */
     public function store(Request $request)
     {
-        //dd($request->all());
-
-        // Validare
         $val_data = $request->validate([
-            'name' => 'required|unique:tags',
+            'name' => 'required|unique:tags'
         ]);
-        // generate slug
         $slug = Str::slug($request->name);
         $val_data['slug'] = $slug;
-
-        // salvare
-
         Tag::create($val_data);
-
-        // redirect
-        return redirect()->back()->with('message', "Tag $slug added successfully");
+        return redirect()->back()->with('message',"Tag $slug added succesfully");
     }
 
     /**
@@ -57,18 +47,13 @@ class TagController extends Controller
      */
     public function update(Request $request, Tag $tag)
     {
-        //dd($request->all());
-
         $val_data = $request->validate([
-            'name' => ['required', Rule::unique('tags')->ignore($tag)],
+            'name' => ['required',Rule::unique('tags')->ignore($tag->id)]
         ]);
-        // generate slug
         $slug = Str::slug($request->name);
         $val_data['slug'] = $slug;
-
         $tag->update($val_data);
-
-        return redirect()->back()->with('message', "Tag $slug updated successfully");
+        return redirect()->back()->with('message',"Tag $slug update succesfully");
     }
 
     /**
@@ -79,8 +64,8 @@ class TagController extends Controller
      */
     public function destroy(Tag $tag)
     {
-        $tag->delete();
 
-        return redirect()->back()->with('message', "tag $tag->name removed successfully");
+        $tag->delete();
+        return redirect()->back()->with('message', "Tag $tag->name Removed Succesfully");
     }
 }

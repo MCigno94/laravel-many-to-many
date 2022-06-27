@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class PostRequest extends FormRequest
 {
@@ -24,11 +25,11 @@ class PostRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' => ['required', 'unique:posts', 'max:150'],
-            'category_id' => ['nullable', 'exists:categories,id'],
+            'title' => ['required',Rule::unique('posts')->ignore($this->post), 'max:255'],
+            'category_id' => ['exists:categories,id', 'nullable'],
             'tags' => ['exists:tags,id'],
-            'cover_image' => ['nullable'],
-            'content' => ['nullable'],
+            'cover_image' => 'nullable',
+            'content' => 'nullable',
         ];
     }
 }

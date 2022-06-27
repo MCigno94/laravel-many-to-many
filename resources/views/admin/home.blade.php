@@ -9,17 +9,14 @@
 
                 <div class="card-body">
                     @if (session('status'))
-                    <div class="alert alert-success" role="alert">
-                        {{ session('status') }}
-                    </div>
+                        <div class="alert alert-success" role="alert">
+                            {{ session('status') }}
+                        </div>
                     @endif
 
-
                     <div>
-                        <a href="{{route('admin.posts.create')}}" class="btn btn-primary">Create Post</a>
+                        <a class="btn btn-primary" href="{{route('admin.posts.create')}}">Create New Post</a>
                     </div>
-
-
                 </div>
             </div>
         </div>
