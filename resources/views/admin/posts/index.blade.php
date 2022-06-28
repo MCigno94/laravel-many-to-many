@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
+
 <div class="container">
     <div class="page_headin d-flex justify-content-between py-5">
         <h1>All Post</h1>
@@ -8,7 +9,9 @@
             <a class="btn btn-primary" href="{{route('admin.posts.create')}}" role="button">Create New Post</a>
         </div>
     </div>
+
     @include('partials.message')
+    
     <table class="table table-striped">
         <thead>
             <tr>
@@ -26,7 +29,7 @@
                 <td>{{$post->title}}</td>
                 <td>{{$post->slug}}</td>
                 <td>
-                    <img width="150" src="{{$post->cover_image}}" alt="">
+                    <img width="150" src="{{asset('storage/' . $post->cover_image)}}" alt="{{$post->title}}">
                 </td>
                 <td>
                     <a class="btn btn-primary" href="{{route('admin.posts.show',$post->slug)}}">Views</a>

@@ -1,12 +1,18 @@
 <?php
 
 namespace App\Http\Controllers\Admin;
-
-use App\Models\Post;
-use App\Models\Category;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PostRequest;
+use App\Mail\NewPostCreated;
+use App\Mail\PostUpdatedAdminMessage;
+use App\Models\Category;
 use App\Models\Tag;
+use App\Models\Post;
+use App\Models\User;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rules\Exists;
 
 class PostController extends Controller
 {
@@ -15,11 +21,13 @@ class PostController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(User $user, Post $post)
     {
-        $posts = Post::all()->sortDesc();
-        //dd($posts);
-        return view('admin.posts.index',compact('posts'));
+        
+        $posts = Post::orderByDesc('id')->get();
+        $post = Auth::user()->posts;
+            
+        return view('admin.posts.index', compact('posts'));
     }
 
     /**
@@ -31,24 +39,44 @@ class PostController extends Controller
     {
         $categories = Category::all();
         $tags = Tag::all();
-        return view('admin.posts.create',compact('categories','tags'));
+        //dd($categories);
+
+        return view('admin.posts.create', compact('categories', 'tags'));;
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  App\Http\Requests\PostRequest;  $request
+     * @param  \App\Http\Requests\PostRequest  $request
      * @return \Illuminate\Http\Response
      */
     public function store(PostRequest $request)
     {
-        //dd($request->all());
-        $validate_data = $request->validated();
+        $val_data = $request->validated();
+
         $slug = Post::generateSlug($request->title);
-        $validate_data['slug'] =$slug;
-        $new_post = Post::create($validate_data);
+        $val_data['slug'] = $slug;
+
+        $val_data['user_id'] = Auth::id();
+
+        if($request->hasFile('cover_image')) { 
+
+            $request->validate([
+                'cover_image' => 'nullable|image|max:500'
+            ]);
+
+            $path = Storage::put('post_images', $request->cover_image);
+            //ddd($path);
+            $val_data['cover_image'] = $path;
+        }
+
+        $new_post = Post::create($val_data);
         $new_post->tags()->attach($request->tags);
-        return redirect()->route('admin.posts.index')->with('message','Post Created Successfully');
+
+        Mail::to($request->user())->send(new NewPostCreated($new_post));
+     
+        // redirect to a get route
+        return redirect()->route('admin.posts.index')->with('message', 'Post creato con successo');
     }
 
     /**
@@ -59,8 +87,7 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        return view('admin.posts.show',compact('post'));
-
+        return view('admin.posts.show', compact('post'));
     }
 
     /**
@@ -73,24 +100,48 @@ class PostController extends Controller
     {
         $categories = Category::all();
         $tags = Tag::all();
-        return view('admin.posts.edit',compact('post','categories','tags'));
+
+        return view('admin.posts.edit', compact('post', 'categories', 'tags')); // invece che compact si scrive $data
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  App\Http\Requests\PostRequest;  $request
+     * @param  \App\Http\Requests\PostRequest  $request
      * @param  \App\Models\Post  $post
      * @return \Illuminate\Http\Response
      */
     public function update(PostRequest $request, Post $post)
     {
-        $validate_data = $request->validated();
+        $val_data = $request->validated();
+
         $slug = Post::generateSlug($request->title);
-        $validate_data['slug'] =$slug;
-        $post->update($validate_data);
+        //dd($slug);
+        $val_data['slug'] = $slug;
+
+        if($request->hasFile('cover_image')) { 
+
+            $request->validate([
+                'cover_image' => 'nullable|image|max:500'
+            ]);
+
+            // elimina la vecchia foto 
+            Storage::delete($post->cover_image);
+
+            $path = Storage::put('post_images', $request->cover_image);
+            //ddd($path);
+
+            $val_data['cover_image'] = $path;
+        }
+        
+        $post->update($val_data);
+
         $post->tags()->sync($request->tags);
-        return redirect()->route('admin.posts.show',$post)->with('message','Post Update Successfully');
+
+        Mail::to('admin@boolpress.it')->send(new PostUpdatedAdminMessage($post));
+
+        // redirect to get route
+        return redirect()->route('admin.posts.index')->with('message', "$post->title modificato con successo!");
     }
 
     /**
@@ -101,7 +152,9 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
+        Storage::delete($post->cover_image);
         $post->delete();
-        return redirect()->route('admin.posts.index')->with('message','Post Delete Successfully');
+        return redirect()->route('admin.posts.index')->with('message', "$post->title deleted successfully");
+        
     }
 }

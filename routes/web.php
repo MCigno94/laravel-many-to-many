@@ -43,26 +43,8 @@ Route::middleware('auth')
     ])->except(['show','create','edit']);
 });
 
-
-
-
-
-
-
-
-
-/* DEVE ESSERE SEMPRE L'ULTIMA */
+/* DEVE SEMPRE ESSERE L'ULTIMA */
 Route::get("{any?}", function ()
 {
     return view('guest.home');
 })->where('any','.*');
-
-
-/*
-- close registration
-- model:
-Category-> TablesCategories-> Admin/CategoryController + One to Many
-Tag-> TablesTags-> Admin/TagController + Many to Many
-
-
-*/

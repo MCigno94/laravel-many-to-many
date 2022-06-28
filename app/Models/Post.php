@@ -2,13 +2,11 @@
 
 namespace App\Models;
 
-/* use App\Models\Category; */ //non serve
-
 use App\User;
-use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Str;
 
 class Post extends Model
 {
