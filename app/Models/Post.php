@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -10,7 +9,7 @@ use Illuminate\Support\Str;
 
 class Post extends Model
 {
-    protected $fillable=['title','content','slug','cover_image','category_id'];
+    protected $fillable=['title','content','slug','cover_image','category_id', 'user_id'];
 
     public static function generateSlug($title)
     {
